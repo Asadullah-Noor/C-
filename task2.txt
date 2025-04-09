@@ -1,0 +1,100 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+using namespace std;
+
+const int MAX_STUDENTS = 100;
+
+struct Student {
+    string regNo;
+    string name;
+    string program;
+    double GPA;
+    string phoneNumber;
+};
+
+int readData(const string& filename, Student students[], int& numStudents) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Error: Unable to open file " << filename << endl;
+        return -1;
+    }
+
+    string line;
+    numStudents = 0;
+    while (getline(file, line) && numStudents < MAX_STUDENTS) {
+        stringstream ss(line);
+        getline(ss, students[numStudents].regNo, ',');
+        getline(ss, students[numStudents].name, ',');
+        getline(ss, students[numStudents].program, ',');
+        ss >> students[numStudents].GPA;
+        ss.ignore(); // Ignore the comma separator
+        getline(ss, students[numStudents].phoneNumber, ',');
+        ++numStudents;
+    }
+
+    file.close();
+    return 0;
+}
+
+void appendData(const string& filename, const Student& student) {
+    ofstream file(filename, ios_base::app);
+    if (!file.is_open()) {
+        cout << "Error: Unable to open file " << filename << " for appending." << endl;
+        return;
+    }
+
+    file << student.regNo << ',' << student.name << ',' << student.program << ',' << student.GPA << ',' << student.phoneNumber << endl;
+    file.close();
+}
+
+void search(const Student students[], int numStudents, const string& regNo) {
+    for (int i = 0; i < numStudents; ++i) {
+        if (students[i].regNo == regNo) {
+            cout << "Registration Number: " << students[i].regNo << endl;
+            cout << "Name: " << students[i].name << endl;
+            cout << "Program: " << students[i].program << endl;
+            cout << "GPA: " << students[i].GPA << endl;
+            cout << "Phone Number: " << students[i].phoneNumber << endl;
+
+        }
+    }
+    cout << "Student with registration number " << regNo << " not found." << endl;
+}
+
+int main() {
+    string filename = "data.csv";
+    Student students[MAX_STUDENTS];
+    int numStudents = 0;
+
+    if (readData(filename, students, numStudents) != 0) {
+        return 1;
+    }
+
+    string regNo;
+    cout << "Enter registration number to search: ";
+    cin >> regNo;
+
+    search(students, numStudents, regNo);
+
+    Student newStudent;
+    cout << "Enter new student information:" << endl;
+    cout << "Registration Number: ";
+    cin >> newStudent.regNo;
+    cout << "Name: ";
+    cin.ignore();
+    getline(cin, newStudent.name);
+    cout << "Program: ";
+    getline(cin, newStudent.program);
+    cout << "GPA: ";
+    cin >> newStudent.GPA;
+    cout << "Phone Number: ";
+    cin >> newStudent.phoneNumber;
+
+    appendData(filename, newStudent);
+    cout << "New student information added to file." << endl;
+
+    return 0;
+}
